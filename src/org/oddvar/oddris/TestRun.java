@@ -6,6 +6,7 @@ import org.newdawn.slick.BasicGame;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.AppGameContainer;
 
@@ -27,8 +28,8 @@ public class TestRun extends BasicGame {
 	private int offsetX;
 	private int offsetY;
 	
-	private int testMoveOffsetX;
-	private int testMoveOffsetY;
+	private int deltaCounter;
+    private int inputDelta;
 	
 	private int frameCount;
 	
@@ -45,55 +46,68 @@ public class TestRun extends BasicGame {
 		updateBlocks = true;
 		nextBlock = gameField.addBlock();
 		frameCount = 0;
+		deltaCounter = 500;
+		inputDelta = 0;
 	}
 
 	@SuppressWarnings("static-access")
 	@Override
 	public void update(GameContainer container, int delta)
 			throws SlickException {
-		
+
+		deltaCounter -= delta;
+        inputDelta -= delta;
+        
 		if(null == block) { //if new block needed
 			block = nextBlock;
 			nextBlock = gameField.addBlock();
 			offsetX = 3;
 			offsetY = 0;
+			
+			if(gameField.checkMoveBlock(block, offsetX, offsetY) == false) {
+				//gameOver();
+				System.out.println("Game over");
+			}
+
 		}
 		
-		testMoveOffsetX = offsetX;
-		testMoveOffsetY = offsetY;
+		// only allow moves every so often
+		if(inputDelta < 0) {
+			Input input = container.getInput();
+
+			if(input.isKeyDown(Input.KEY_LEFT)) {
+				if(gameField.checkMoveBlock(block, offsetX-1, offsetY)) {				
+					gameField.moveBlock(block, offsetX--, offsetY);
+					inputDelta = 100;
+				}
+
+			}
+			else if(input.isKeyDown(Input.KEY_RIGHT)) {
+				if(gameField.checkMoveBlock(block, offsetX+1, offsetY)) {				
+					gameField.moveBlock(block, offsetX++, offsetY);
+					inputDelta = 100;
+				}
+			}
+			else if(input.isKeyDown(Input.KEY_DOWN)) {
+				if(gameField.checkMoveBlock(block, offsetX, offsetY+1)) {				
+					gameField.moveBlock(block, offsetX, offsetY++);
+					inputDelta = 100;
+				}
+			}
+
+		}
+		
+		
 		// update as per speed (FRAMES_PER_STEP)
 		if(frameCount == 0) {
-			testMoveOffsetY++;		
-		}
-
-		if(frameCount == 30) {
-			if(offsetY>10) {
-				testMoveOffsetX--;
+			if(gameField.checkMoveBlock(block, offsetX, offsetY+1)) {				
+				gameField.moveBlock(block, offsetX, offsetY++);
 			}
 			else {
-				testMoveOffsetX++;	
+				gameField.glueBlock(block, offsetX, offsetY);
+				block = null;
 			}
-					
 		}
-
-		
-		//if(input == moveSideways)) tryMove();
-		
-		if(gameField.checkMoveBlock(block, testMoveOffsetX, testMoveOffsetY)) {
-			
-			// if try is successful, move:
-			gameField.moveBlock(block, testMoveOffsetX, testMoveOffsetY);
-			offsetX = testMoveOffsetX;
-			offsetY = testMoveOffsetY;
-			
-		}
-		
-		
-		//else if(input == down)) 
-		//if(!moveDown()) // means we have hit bottom:
-		// mergeBrick();
-		//
-		
 		
 		// wait one frame
 		try {
@@ -102,20 +116,7 @@ public class TestRun extends BasicGame {
 			// For example, NES Tetris operates at 60 frames per second. At level 0, a piece falls one step every 48 frames, and at level 19, a piece falls one step every 2 frames. Level increments either terminate at a certain point (Game Boy Tetris tops off at level 20)
 		}
 		catch(InterruptedException e) {}
-		//oops - collision
 
-		//updateBlocks = false;
-		/// hmm looks like you need to render everything
-		
-		
-		
-		//if(fullRows()) // includes animation that stops the game
-		// animateFullRows();
-		// addScore;
-
-		
-		//gameField.setBlock(rand.nextInt(gameField.getWidth()), rand.nextInt(gameField.getHeight()), Color.blue);
-		//gameField.setBlock(rand.nextInt(gameField.getWidth()), rand.nextInt(gameField.getHeight()), Color.red);
 	}
 
 	@Override
@@ -173,26 +174,8 @@ public class TestRun extends BasicGame {
 			AppGameContainer app = new AppGameContainer(new TestRun());
 			app.setDisplayMode(RES_WIDTH, RES_HEIGHT, false);
 			app.start();
-			/*
-			Block b = new IBlock();
-
-			System.out.println(b.toString());
-			b.rotateClockWise();
-			System.out.println(b.toString());		
-			b.rotateClockWise();
-			System.out.println(b.toString());
-			b.rotateClockWise();
-			System.out.println(b.toString());
-			b.rotateCounterClockWise();	
-			System.out.println(b.toString());
-			b.rotateCounterClockWise();	
-			System.out.println(b.toString());
-			b.rotateCounterClockWise();	
-			System.out.println(b.toString());
-			b.rotateCounterClockWise();	
-			System.out.println(b.toString());
-			*/
-		} catch (SlickException e) {
+		} 
+		catch (SlickException e) {
 			e.printStackTrace();
 		}
 

@@ -80,6 +80,28 @@ public class GameField {
 		}
 	}
 
+	public boolean glueBlock(Block b, int offsetX, int offsetY) {
+		boolean [][] newBlock = b.getBlocks();
+		
+		for(int i=0; i<newBlock.length; i++) {
+			for(int j=0; j<newBlock.length; j++) {
+				if(newBlock[i][j]) {
+					if(i+offsetX < 0 || i+offsetX >= GAMEFIELDWIDTH ||
+							j+offsetY < 0 || j+offsetY >= GAMEFIELDHEIGHT) {
+						return false;
+					}
+							
+					if(blocks[i+offsetX][j+offsetY] != Config.NOBLOCKCOLOUR) {
+						return false;
+					}
+					
+					blocks[i+offsetX][j+offsetY] = b.getColor(); 
+				}
+			}
+		}
+		return true;
+	}
+
 
 	/*
 	 * The field dimension of Tetris is perhaps the least deviated among releases: 
